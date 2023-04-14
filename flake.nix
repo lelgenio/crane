@@ -65,6 +65,11 @@
           description = "Build a cargo project without extra checks";
           path = ./examples/quick-start-simple;
         };
+
+        trunk = {
+          description = "Build a trunk project";
+          path = ./examples/trunk;
+        };
       };
     } // flake-utils.lib.eachDefaultSystem (system:
       let
