@@ -91,7 +91,7 @@
         # wasm32 target, so we only build the client.
         wasmArgs = commonArgs // {
           pname = "trunk-workspace-wasm";
-          cargoExtraArgs = "--package=client --target=wasm32-unknown-unknown";
+          cargoExtraArgs = "--package=client";
         };
 
         cargoArtifactsWasm = craneLib.buildDepsOnly (wasmArgs // {
@@ -105,6 +105,14 @@
           inherit cargoArtifactsWasm;
           indexPath = "client/index.html";
         });
+
+        mixedArtifacts = pkgs.symlinkJoin {
+          name = "mixed-artifacts";
+          paths = [
+            cargoArtifacts
+            cargoArtifactsWasm
+          ];
+        };
       in
       {
         checks = {
@@ -131,6 +139,10 @@
           my-app-audit = craneLib.cargoAudit (commonArgs // {
             inherit src advisory-db;
           });
+        };
+
+        packages = {
+          inherit mixedArtifacts cargoArtifactsWasm myClient;
         };
 
         apps.default = flake-utils.lib.mkApp {
