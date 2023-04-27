@@ -10,19 +10,31 @@ let
 
   myLibWasm = myLib.overrideToolchain wasmToolchain;
 
-  src = ./trunk;
-
-  cargoArtifactsWasm = myLibWasm.buildDepsOnly {
-    inherit src;
-    cargoExtraArgs = "--target=wasm32-unknown-unknown";
+  defaultArgs = {
+    src = ./trunk;
     doCheck = false;
   };
 
-  trunkSimple = myLibWasm.buildTrunkPackage {
-    inherit src cargoArtifactsWasm;
+  # default build
+  cargoArtifactsWasm = myLibWasm.buildDepsOnly (defaultArgs // {
+    cargoExtraArgs = "--target=wasm32-unknown-unknown";
+  });
+  trunkSimple = myLibWasm.buildTrunkPackage (defaultArgs // {
+    inherit cargoArtifactsWasm;
     pname = "trunk-simple";
-  };
+  });
+
+  # Trying to build when cargoArtifacts does not contain
+  # the wasm32-unknown-unknown target should throw an exception
+  cargoArtifacts = myLibWasm.buildDepsOnly defaultArgs;
+  trunkSimpleIncorrectArgs = myLibWasm.buildTrunkPackage (defaultArgs // {
+    cargoArtifactsWasm = cargoArtifacts;
+    pname = "trunk-simple-incorrect-args";
+  });
 in
+
+assert (builtins.tryEval trunkSimpleIncorrectArgs).success == false;
+
 runCommand "trunkTests" { } ''
   test -f ${trunkSimple}/*.wasm
   mkdir -p $out

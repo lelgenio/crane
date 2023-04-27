@@ -22,37 +22,30 @@ let
   ];
 
   incorrectTargetError = throw "cargoArtifactsWasm must be built for target wasm32-unknown-unknown";
-  builtTargets = ("${cargoArtifactsWasm}/target");
-  targetsIncludesWasm = (if (
-    builtins.readDir
-      builtTargets."wasm32-unknown-unknown" or incorrectTargetError
-  ) == "directory"
-  then true
-  else incorrectTargetError
-  );
+  builtTargets = builtins.readDir "${cargoArtifactsWasm}/target";
+  wasmBuildDir = builtTargets."wasm32-unknown-unknown" or incorrectTargetError;
 in
 
-assert cargoArtifactsWasm == null || targetsIncludesWasm ;
+assert cargoArtifactsWasm == null || wasmBuildDir == "directory";
 
-mkCargoDerivation
-  (args // {
-    cargoArtifacts = cargoArtifactsWasm;
-    pnameSuffix = "-trunk";
+mkCargoDerivation (args // {
+  cargoArtifacts = cargoArtifactsWasm;
+  pnameSuffix = "-trunk";
 
-    buildPhaseCargoCommand = ''
-      trunk ${trunkExtraArgs} build --release ${trunkExtraBuildArgs} ${indexPath}
-    '';
+  buildPhaseCargoCommand = ''
+    trunk ${trunkExtraArgs} build --release ${trunkExtraBuildArgs} ${indexPath}
+  '';
 
-    installPhase = ''
-      cp -r "$(dirname ${indexPath})/dist" $out
-    '';
+  installPhase = ''
+    cp -r "$(dirname ${indexPath})/dist" $out
+  '';
 
-    buildInputs = (args.buildInputs or [ ]) ++ [
-      trunk
-      wasm-bindgen-cli
-      binaryen
-      # dart-sass compiled to javascript
-      # TODO: replace with a native version when it comes to nixpkgs
-      nodePackages.sass
-    ];
-  })
+  buildInputs = (args.buildInputs or [ ]) ++ [
+    trunk
+    wasm-bindgen-cli
+    binaryen
+    # dart-sass compiled to javascript
+    # TODO: replace with a native version when it comes to nixpkgs
+    nodePackages.sass
+  ];
+})
