@@ -1,4 +1,6 @@
-{ binaryen
+{ lib
+, stdenv
+, binaryen
 , buildDepsOnly
 , crateNameFromCargoToml
 , mkCargoDerivation
@@ -7,6 +9,7 @@
 , trunk
 , vendorCargoDeps
 , wasm-bindgen-cli
+, darwin
 }:
 
 { trunkExtraArgs ? ""
@@ -77,6 +80,8 @@ mkCargoDerivation (args // {
         "--verbose"
         "--define=version=${o.version}"
       ];
+      nativeBuildInputs = o.nativeBuildInputs
+        ++ lib.optionals stdenv.isDarwin [ darwin.cctools darwin.sigtool ];
     }))
     trunk
     wasm-bindgen-cli
