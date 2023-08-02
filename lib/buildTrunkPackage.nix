@@ -72,7 +72,12 @@ mkCargoDerivation (args // {
 
   nativeBuildInputs = (args.nativeBuildInputs or [ ]) ++ [
     binaryen
-    dart-sass
+    (dart-sass.overrideAttrs (o: {
+      dartCompileFlags = [
+        "--verbose"
+        "--define=version=${o.version}"
+      ];
+    }))
     trunk
     wasm-bindgen-cli
     # Store references are certainly false positives
