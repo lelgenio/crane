@@ -1,6 +1,4 @@
-{ lib
-, stdenv
-, binaryen
+{ binaryen
 , buildDepsOnly
 , crateNameFromCargoToml
 , mkCargoDerivation
@@ -9,6 +7,8 @@
 , trunk
 , vendorCargoDeps
 , wasm-bindgen-cli
+, lib
+, stdenv
 , darwin
 }:
 
@@ -76,12 +76,8 @@ mkCargoDerivation (args // {
   nativeBuildInputs = (args.nativeBuildInputs or [ ]) ++ [
     binaryen
     (dart-sass.overrideAttrs (o: {
-      dartCompileFlags = [
-        "--verbose"
-        "--define=version=${o.version}"
-      ];
       nativeBuildInputs = o.nativeBuildInputs
-        ++ lib.optionals stdenv.isDarwin [ darwin.cctools darwin.sigtool ];
+        ++ lib.optionals stdenv.isDarwin [ darwin.sigtool ];
     }))
     trunk
     wasm-bindgen-cli
